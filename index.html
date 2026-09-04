@@ -1,33 +1,11 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>LimitesGPT Bridge Probe</title>
-<style>
-body{font-family:system-ui,-apple-system,sans-serif;background:#0f1115;color:#f3f4f6;margin:0;min-height:100vh;display:grid;place-items:center;padding:20px}main{width:min(620px,100%);background:#171a20;border:1px solid #303640;border-radius:18px;padding:20px}h1{font-size:22px;margin:0 0 8px}p{color:#aeb6c2;line-height:1.5}#log{margin-top:16px;padding:12px;border-radius:12px;background:#101318;line-height:1.7;font-size:14px;white-space:pre-wrap}
-</style>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LimitesGPT Bridge</title>
+<style>body{font-family:system-ui;background:#0f1115;color:#f3f4f6;margin:0;min-height:100vh;display:grid;place-items:center;padding:20px}main{width:min(620px,100%);background:#171a20;border:1px solid #303640;border-radius:18px;padding:20px}button{width:100%;min-height:52px;border:1px solid #3d4653;border-radius:13px;background:#242a33;color:#fff;font-weight:800}#log{margin-top:14px;padding:12px;border-radius:12px;background:#101318;line-height:1.65;white-space:pre-wrap}</style>
 </head>
-<body>
-<main>
-<h1>LimitesGPT · Bridge Probe</h1>
-<p>Teste de ligação entre uma página externa e o App Block do ChatGPT. Esta página não acessa arquivos locais.</p>
-<div id="log">⏳ Iniciando…</div>
-</main>
+<body><main><h2>LimitesGPT · Persistent Bridge</h2><p>Autoriza uma pasta local nesta página externa e guarda apenas a permissão do navegador neste domínio.</p><button id="pick">📁 ESCOLHER PASTA</button><div id="log">⏳ Inicializando…</div></main>
 <script>
-(()=>{
- const token=new URLSearchParams(location.search).get('token')||'';
- const hasOpener=!!window.opener;
- const lines=[
-  (hasOpener?'✅':'❌')+' window.opener: '+(hasOpener?'presente':'ausente'),
-  (isSecureContext?'✅':'❌')+' secure context: '+isSecureContext,
-  '🌐 origem: '+location.origin
- ];
- document.getElementById('log').textContent=lines.join('\n');
- if(hasOpener){
-  try{window.opener.postMessage({type:'limitesgpt-bridge',token,op:'hello',origin:location.origin},'*')}catch(e){}
- }
-})();
-</script>
-</body>
-</html>
+(()=>{const L=document.getElementById('log'),B=document.getElementById('pick');const embedded=top!==self;const DB='limitesgpt-bridge',STORE='handles',KEY='root';function openDB(){return new Promise((ok,no)=>{const r=indexedDB.open(DB,1);r.onupgradeneeded=()=>r.result.createObjectStore(STORE);r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)})}async function save(h){const d=await openDB();return new Promise((ok,no)=>{const t=d.transaction(STORE,'readwrite');t.objectStore(STORE).put(h,KEY);t.oncomplete=()=>{d.close();ok()};t.onerror=()=>no(t.error)})}async function load(){const d=await openDB();return new Promise((ok,no)=>{const t=d.transaction(STORE,'readonly'),r=t.objectStore(STORE).get(KEY);r.onsuccess=()=>{d.close();ok(r.result||null)};r.onerror=()=>no(r.error)})}async function status(){const h=await load();let p='missing';if(h){try{p=await h.queryPermission({mode:'read'})}catch(e){p='error'}}L.textContent=(embedded?'🌉 modo iframe':'🌐 modo top-level')+'\n'+(h?'✅ handle salvo: '+h.name:'❌ nenhum handle salvo')+'\n🔐 permissão: '+p;return{h,p}}B.hidden=embedded;B.onclick=async()=>{try{const h=await showDirectoryPicker({mode:'read'});await save(h);await status();L.textContent+='\n🔥 PONTE ARMADA. Volte ao ChatGPT.'}catch(e){L.textContent='💀 '+(e?.message||String(e))}};addEventListener('message',async e=>{if(e.data?.type!=='LGT_PING')return;const s=await status();e.source?.postMessage({type:'LGT_PONG',hasHandle:!!s.h,permission:s.p,name:s.h?.name||null},'*')});status().catch(e=>L.textContent='💀 '+e.message)})();
+</script></body></html>
