@@ -21,10 +21,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout OpenSA
+      - name: Checkout OpenSA source snapshot
         uses: actions/checkout@v4
         with:
-          repository: AlexSergey/opensa
+          repository: AlexSergey/opensa-fork-notice
           ref: main
           path: opensa
 
