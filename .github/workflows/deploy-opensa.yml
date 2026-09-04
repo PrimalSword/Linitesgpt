@@ -28,6 +28,26 @@ jobs:
           ref: main
           path: opensa
 
+      - name: Enable local San Andreas launcher
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('opensa/apps/web/src/game-config.tsx')
+          s = p.read_text()
+          s = s.replace(
+              "  gostown: {\n    assetLoader: 'fetch',\n",
+              "  gostown: {\n    assetLoader: 'fetch',\n    devOnly: true,\n",
+              1,
+          )
+          s = s.replace(
+              "  original: {\n    assetLoader: 'local',\n    devOnly: true,\n",
+              "  original: {\n    assetLoader: 'local',\n    devOnly: false,\n",
+              1,
+          )
+          p.write_text(s)
+          print('Configured production menu for local San Andreas only')
+          PY
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
